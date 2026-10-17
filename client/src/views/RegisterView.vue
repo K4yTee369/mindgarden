@@ -66,7 +66,7 @@ const handleRegister = async () => {
       <form @submit.prevent="handleRegister" class="auth-form">
         <div class="input-group">
           <label>Họ và Tên</label>
-          <input v-model="fullName" type="text" placeholder="Vd: Nguyễn Văn A" :disabled="isLoading" />
+          <input v-model="fullName" type="text" placeholder="Vd: Nguyễn Văn Mười" :disabled="isLoading" />
         </div>
 
         <div class="input-group">
