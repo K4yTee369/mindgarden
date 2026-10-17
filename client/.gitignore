@@ -1,0 +1,13 @@
+# Không đẩy thư mục thư viện nặng lên GitHub
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Không đẩy file build tạm
+client/dist/
+
+# TUYỆT ĐỐI BẢO MẬT: Không đẩy file .env chứa API Key của Gemini và mật khẩu MongoDB
+.env
+.env.*
+server/.env
+client/.env

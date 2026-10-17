@@ -1,0 +1,157 @@
+/* ==========================================================================
+   MindGarden — Global Styles
+   Light/Dark theme via CSS variables, animated gradient background,
+   glassmorphism surfaces, and a strict 100vh flex layout (no double scroll).
+   ========================================================================== */
+
+* {
+  box-sizing: border-box;
+}
+
+/* ---------- Theme variables ---------- */
+:root {
+  --color-bg-1: #a8edea;
+  --color-bg-2: #fed6e3;
+  --color-bg-3: #d4fc79;
+  --color-bg-4: #96e6a1;
+
+  --surface: rgba(255, 255, 255, 0.55);
+  --surface-strong: rgba(255, 255, 255, 0.75);
+  --border-color: rgba(255, 255, 255, 0.35);
+
+  --text-primary: #1f2937;
+  --text-secondary: #4b5563;
+  --text-muted: #6b7280;
+
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+
+  --ai-bubble-bg: rgba(219, 234, 254, 0.75);
+  --user-bubble-bg: rgba(167, 243, 208, 0.75);
+
+  --danger: #ef4444;
+  --shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+}
+
+.dark-mode {
+  --color-bg-1: #0f2027;
+  --color-bg-2: #203a43;
+  --color-bg-3: #2c5364;
+  --color-bg-4: #1a1a2e;
+
+  --surface: rgba(20, 20, 30, 0.55);
+  --surface-strong: rgba(20, 20, 30, 0.75);
+  --border-color: rgba(255, 255, 255, 0.1);
+
+  --text-primary: #f3f4f6;
+  --text-secondary: #d1d5db;
+  --text-muted: #9ca3af;
+
+  --accent: #60a5fa;
+  --accent-hover: #3b82f6;
+
+  --ai-bubble-bg: rgba(59, 78, 110, 0.6);
+  --user-bubble-bg: rgba(30, 90, 70, 0.6);
+
+  --danger: #f87171;
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+
+/* ---------- Reset & animated background ---------- */
+html,
+body {
+  height: 100vh;
+  margin: 0;
+  overflow: hidden;
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--text-primary);
+}
+
+body {
+  background: linear-gradient(
+    -45deg,
+    var(--color-bg-1),
+    var(--color-bg-2),
+    var(--color-bg-3),
+    var(--color-bg-4)
+  );
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+  transition: color 0.3s ease;
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ---------- Glassmorphism helper ---------- */
+.glass {
+  background: var(--surface);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+/* ---------- Buttons & inputs (shared) ---------- */
+button {
+  cursor: pointer;
+  font-family: inherit;
+  border: none;
+  border-radius: 10px;
+  transition: background 0.2s ease, opacity 0.2s ease, transform 0.1s ease;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+input,
+textarea {
+  font-family: inherit;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: var(--surface-strong);
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+input:focus,
+textarea:focus {
+  border-color: var(--accent);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.4);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}

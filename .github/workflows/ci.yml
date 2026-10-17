@@ -1,0 +1,59 @@
+name: MindGarden CI Pipeline
+
+# Tự động kích hoạt mỗi khi bạn push code hoặc tạo Pull Request vào nhánh main/master
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  # 1. Kiểm tra toàn bộ mã nguồn Backend (Node.js / Express)
+  backend-check:
+    name: Kiểm tra Backend (Server)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./server
+
+    steps:
+      - name: Tải mã nguồn từ GitHub
+        uses: actions/checkout@v4
+
+      - name: Cài đặt môi trường Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: ./server/package-lock.json
+
+      - name: Cài đặt thư viện Backend
+        run: npm install
+
+      - name: Kiểm tra lỗi cú pháp Server (Syntax Check)
+        run: node --check index.js
+
+  # 2. Kiểm tra và chạy thử bản Build của Frontend (Vue 3 / Vite)
+  frontend-build:
+    name: Kiểm tra & Build Frontend (Client)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./client
+
+    steps:
+      - name: Tải mã nguồn từ GitHub
+        uses: actions/checkout@v4
+
+      - name: Cài đặt môi trường Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: ./client/package-lock.json
+
+      - name: Cài đặt thư viện Frontend
+        run: npm install
+
+      - name: Đóng gói giao diện thử nghiệm (Vite Production Build)
+        run: npm run build

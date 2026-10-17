@@ -1,0 +1,16 @@
+# Ẩn toàn bộ thư mục thư viện nặng
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Ẩn file build giao diện
+client/dist/
+
+# BẢO MẬT: Ẩn toàn bộ file .env chứa API Key và mật khẩu DB
+.env
+.env.*
+server/.env
+client/.env
+
+# Ẩn các ảnh test tải lên từ máy cá nhân
+server/uploads/*
