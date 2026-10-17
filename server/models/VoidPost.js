@@ -4,7 +4,7 @@ const VoidPostSchema = new mongoose.Schema({
   id: { type: Number, unique: true }, 
   content: { type: String },
   author: { type: String, default: "Anonymous" },
-  tag: { type: String, default: "General" },
+  tag: { type: String, default: "General", trim: true },
   images: [{ type: String }], 
   comments: [{
     author: String,

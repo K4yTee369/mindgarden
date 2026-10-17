@@ -23,10 +23,67 @@ const commentDraft = ref("");
 const isSubmittingComment = ref(false);
 const isCommentAnonymous = ref(true);
 
-const filteredPosts = computed(() => {
-  if (activeFilter.value === "All") return posts.value;
-  return posts.value.filter((p) => p.tag === activeFilter.value);
+const customTagInput = ref('General'); // Mặc định nếu người dùng để trống
+const searchHashtagQuery = ref('');    // Từ khóa người dùng gõ vào ô Search
+const selectedFilterTag = ref('All');  // Thẻ đang bấm lọc ('All' là Tất cả)
+
+const QUICK_SUGGESTED_TAGS = ['Academic', 'Relationships', 'Burnout', 'Anxiety', 'Family', 'General'];
+
+const cleanTagString = (raw) => {
+  if (!raw) return 'General';
+  const cleaned = raw.trim().replace(/^#+/, '').trim();
+  return cleaned || 'General';
+};
+
+const availableHashtags = computed(() => {
+  const tagSet = new Set(QUICK_SUGGESTED_TAGS);
+  if (Array.isArray(posts.value)) {
+    posts.value.forEach((p) => {
+      if (p.tag) tagSet.add(cleanTagString(p.tag));
+    });
+  }
+  return Array.from(tagSet);
 });
+
+const filteredPosts = computed(() => {
+  if (!Array.isArray(posts.value)) return [];
+
+  return posts.value.filter((post) => {
+    const postTag = cleanTagString(post.tag).toLowerCase();
+    const postContent = (post.content || '').toLowerCase();
+
+    // 1. Lọc theo nút Tag đang chọn (nếu khác 'All')
+    const matchSelectedBtn =
+      selectedFilterTag.value === 'All' ||
+      postTag === cleanTagString(selectedFilterTag.value).toLowerCase();
+
+    // 2. Lọc theo ô Search Hashtag (người dùng có thể gõ #academic hoặc academic)
+    const rawQuery = searchHashtagQuery.value.trim().replace(/^#+/, '').toLowerCase();
+    const matchSearchInput =
+      !rawQuery ||
+      postTag.includes(rawQuery) ||
+      postContent.includes(`#${rawQuery}`);
+
+    return matchSelectedBtn && matchSearchInput;
+  });
+});
+
+const filterByClickingTag = (tagValue) => {
+  const clean = cleanTagString(tagValue);
+  selectedFilterTag.value = clean;
+  searchHashtagQuery.value = `#${clean}`;
+};
+
+// Xóa bộ lọc tìm kiếm
+const clearHashtagFilter = () => {
+  selectedFilterTag.value = 'All';
+  searchHashtagQuery.value = '';
+};
+
+// const filteredPosts = computed(() => {
+//   if (activeFilter.value === "All") return posts.value;
+//   return posts.value.filter((p) => p.tag === activeFilter.value);
+// });
 
 function currentUserDisplayName() {
   return authState.user?.fullName || "Stranger";
@@ -113,7 +170,7 @@ async function submitPost() {
     const formData = new FormData();
     formData.append("content", text);
     formData.append("author", isAnonymous.value ? "Stranger" : currentUserDisplayName());
-    formData.append("tag", selectedTag.value);
+    formData.append('tag', cleanTagString(customTagInput.value));
 
     selectedImages.value.forEach(file => {
       formData.append("images", file);
@@ -209,11 +266,79 @@ onMounted(() => { fetchPosts(); });
         </div>
       </div>
 
-      <div class="tag-selector">
+            <!-- 1. KHU VỰC NHẬP HASHTAG TỰ DO TRONG KHUNG ĐĂNG BÀI -->
+      <div class="custom-hashtag-box">
+        <div class="hashtag-input-wrapper">
+          <span class="hash-prefix">#</span>
+          <input
+            type="text"
+            v-model="customTagInput"
+            class="hashtag-input"
+            placeholder="Hashtag cho bài đăng của bạn"
+            maxlength="30"
+          />
+        </div>
+
+        <!-- Gợi ý nhanh nếu muốn bấm chọn -->
+        <div class="quick-tags-row">
+          <span class="quick-label">Gợi ý:</span>
+          <button
+            v-for="sug in QUICK_SUGGESTED_TAGS"
+            :key="sug"
+            type="button"
+            class="quick-tag-chip"
+            :class="{ active: cleanTagString(customTagInput).toLowerCase() === sug.toLowerCase() }"
+            @click="customTagInput = sug"
+          >
+            #{{ sug }}
+          </button>
+        </div>
+      </div>
+
+            <!-- 2. THANH TÌM KIẾM & LỌC BÀI VIẾT THEO HASHTAG -->
+      <div class="void-search-filter-bar">
+        <div class="search-hashtag-box">
+          <input
+            type="text"
+            v-model="searchHashtagQuery"
+            class="search-hashtag-input"
+            placeholder="Tìm kiếm bài đăng theo #hashtag"
+          />
+          <button
+            v-if="searchHashtagQuery || selectedFilterTag !== 'All'"
+            class="clear-search-btn"
+            @click="clearHashtagFilter"
+          >
+            Xóa lọc
+          </button>
+        </div>
+
+        <!-- Danh sách các Hashtag phổ biến (Bao gồm cả các hashtag mới do người dùng tự tạo) -->
+        <div class="filter-tags-scroll">
+          <button
+            class="filter-pill"
+            :class="{ active: selectedFilterTag === 'All' && !searchHashtagQuery }"
+            @click="clearHashtagFilter"
+          >
+            Tất cả ({{ posts.length }})
+          </button>
+          <button
+            v-for="tagItem in availableHashtags"
+            :key="tagItem"
+            class="filter-pill"
+            :class="{ active: selectedFilterTag.toLowerCase() === tagItem.toLowerCase() }"
+            @click="selectedFilterTag = tagItem; searchHashtagQuery = ''"
+          >
+            #{{ tagItem }}
+          </button>
+        </div>
+      </div>
+
+      <!-- <div class="tag-selector">
         <button v-for="tag in VOID_TAGS" :key="tag" type="button" class="tag-chip" :class="{ 'tag-chip-active': selectedTag === tag }" @click="selectedTag = tag">
           #{{ tag }}
         </button>
-      </div>
+      </div> -->
 
       <div class="void-input-footer">
         <div class="footer-left">
@@ -231,12 +356,12 @@ onMounted(() => { fetchPosts(); });
       </div>
     </div>
 
-    <!-- Thanh lọc -->
+    <!-- Thanh lọc
     <div class="filter-bar">
       <button v-for="option in filterOptions" :key="option" type="button" class="filter-chip" :class="{ 'filter-chip-active': activeFilter === option }" @click="activeFilter = option">
         {{ option === "All" ? "Tất cả" : `#${option}` }}
       </button>
-    </div>
+    </div> -->
 
     <!-- Bảng tin -->
     <div class="void-feed">
@@ -296,7 +421,7 @@ onMounted(() => { fetchPosts(); });
           </div>
         </div>
 
-        <!-- Khung nhập bình luận -->
+
         <!-- Khung nhập bình luận -->
         <div class="comment-input-area">
           <label class="anon-toggle-comment">
@@ -394,4 +519,139 @@ onMounted(() => { fetchPosts(); });
 .comment-input-area input { flex: 1; padding: 0.7rem 1rem; border-radius: 999px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-primary); outline: none; }
 .send-comment-btn { background: var(--accent); color: white; border: none; width: 38px; height: 38px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .send-comment-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+
+/* Khung tự nhập Hashtag khi đăng bài */
+.custom-hashtag-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.hashtag-input-wrapper {
+  display: flex;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  padding: 0 12px;
+  transition: border-color 0.2s;
+}
+
+.hashtag-input-wrapper:focus-within {
+  border-color: #3b82f6;
+}
+
+.hash-prefix {
+  color: #60a5fa;
+  font-weight: 800;
+  font-size: 1rem;
+  margin-right: 4px;
+}
+
+.hashtag-input {
+  width: 100%;
+  padding: 9px 4px;
+  background: transparent;
+  border: none;
+  color: #f8fafc;
+  font-size: 0.88rem;
+  outline: none;
+}
+
+.quick-tags-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.quick-label {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin-right: 4px;
+}
+
+.quick-tag-chip {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(15, 23, 42, 0.6);
+  color: #cbd5e1;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.quick-tag-chip.active,
+.quick-tag-chip:hover {
+  background: #3b82f6;
+  color: #ffffff;
+  border-color: #60a5fa;
+}
+
+/* Thanh tìm kiếm & lọc Hashtag */
+.void-search-filter-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.search-hashtag-box {
+  display: flex;
+  gap: 8px;
+}
+
+.search-hashtag-input {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(15, 23, 42, 0.75);
+  color: #f8fafc;
+  font-size: 0.88rem;
+  outline: none;
+}
+
+.search-hashtag-input:focus {
+  border-color: #3b82f6;
+}
+
+.clear-search-btn {
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(51, 65, 85, 0.7);
+  color: #e2e8f0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.filter-tags-scroll {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-pill {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(15, 23, 42, 0.75);
+  color: #cbd5e1;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.filter-pill.active {
+  background: #60a5fa;
+  color: #0f172a;
+  border-color: #60a5fa;
+}
+
 </style>
