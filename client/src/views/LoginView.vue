@@ -42,8 +42,8 @@ const handleLogin = async () => {
 <template>
   <div class="auth-wrapper">
     <div class="auth-card glass">
-      <h2>Chào mừng trở lại</h2>
-      <p class="subtitle">Khu vườn tâm trí luôn mở cửa đón bạn.</p>
+      <h2>Chào mừng đến với MindGarden</h2>
+      <!-- <p class="subtitle">Khu vườn tâm trí luôn mở cửa đón bạn.</p> -->
 
       <form @submit.prevent="handleLogin" class="auth-form">
         <div class="input-group">
