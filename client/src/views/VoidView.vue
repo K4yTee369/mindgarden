@@ -6,7 +6,7 @@ import { authState } from "../store/auth";
 const VOID_TAGS = ["Academic", "Relationships", "Burnout", "Anxiety", "Family", "General"];
 const posts = ref([]);
 const draft = ref("");
-const isAnonymous = ref(true);
+const isAnonymous = ref(false);
 const isSubmitting = ref(false);
 const selectedTag = ref(VOID_TAGS[0]);
 
