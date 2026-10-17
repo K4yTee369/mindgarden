@@ -21,7 +21,7 @@ const filterOptions = ["All", ...VOID_TAGS];
 const selectedPost = ref(null);
 const commentDraft = ref("");
 const isSubmittingComment = ref(false);
-const isCommentAnonymous = ref(true);
+const isCommentAnonymous = ref(false);
 
 const customTagInput = ref('General'); // Mặc định nếu người dùng để trống
 const searchHashtagQuery = ref('');    // Từ khóa người dùng gõ vào ô Search
@@ -228,7 +228,6 @@ async function submitComment() {
   
   isSubmittingComment.value = true;
   try {
-    // Sửa dòng này:
     const author = isCommentAnonymous.value ? "Stranger" : currentUserDisplayName();
     
     const { data } = await axios.post(`http://localhost:5000/api/void/${selectedPost.value.id}/comments`, {
