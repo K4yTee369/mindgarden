@@ -157,6 +157,7 @@ async function handleLogout() {
         <router-link to="/void" class="nav-link">The Void</router-link>
         <router-link to="/wordle" class="nav-link">Wordle</router-link>
         <router-link to="/songless" class="nav-link">Songless</router-link>
+        <router-link to="/soul-guard" class="nav-link">Soul Guard</router-link>
         <router-link to="/leaderboard" class="nav-link">Bảng xếp hạng</router-link>
       </nav>
 

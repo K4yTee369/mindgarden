@@ -9,6 +9,7 @@ import AdminView from "../views/AdminView.vue";
 import WordleView from '../views/WordleView.vue';
 import LeaderboardView from '../views/LeaderboardView.vue';
 import SonglessView from '../views/SonglessView.vue';
+import SoulGuardView from '../views/SoulGuardView.vue';
 
 
 const routes = [
@@ -46,6 +47,11 @@ const routes = [
   path: '/songless',
   name: 'songless',
   component: SonglessView
+},
+{
+  path: '/soul-guard',
+  name: 'soul-guard',
+  component: SoulGuardView
 }
 ];
 

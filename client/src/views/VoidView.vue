@@ -279,7 +279,7 @@ onMounted(() => { fetchPosts(); });
         </div>
 
         <!-- Gợi ý nhanh nếu muốn bấm chọn -->
-        <div class="quick-tags-row">
+        <!-- <div class="quick-tags-row">
           <span class="quick-label">Gợi ý:</span>
           <button
             v-for="sug in QUICK_SUGGESTED_TAGS"
@@ -291,7 +291,7 @@ onMounted(() => { fetchPosts(); });
           >
             #{{ sug }}
           </button>
-        </div>
+        </div> -->
       </div>
 
             <!-- 2. THANH TÌM KIẾM & LỌC BÀI VIẾT THEO HASHTAG -->
