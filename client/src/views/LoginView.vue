@@ -29,7 +29,7 @@ const handleLogin = async () => {
       localStorage.setItem('token', data.token);
       authState.isAuthenticated = true;
       authState.user = data.user;
-      router.push('/chat');
+      router.push('/void');
     }
   } catch (err) {
     errorMsg.value = err.response?.data?.message || 'Lỗi kết nối đến máy chủ.';

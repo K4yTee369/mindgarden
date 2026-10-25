@@ -193,7 +193,16 @@ app.post('/api/void', upload.array('images', 4), async (req, res) => {
     }
 
     // --- TIẾN HÀNH LƯU DATABASE (Giữ nguyên toàn bộ phần lưu của bạn) ---
-    const imageUrls = req.files ? req.files.map(file => `uploads/${file.filename}`) : [];
+    // Tìm dòng này trong app.post('/api/void') ở server/index.js:
+// const imageUrls = req.files ? req.files.map(file => `uploads/${file.filename}`) : [];
+
+// Và thay bằng đoạn này để ảnh lưu vĩnh viễn trong MongoDB, mở xem được ở mọi nơi:
+  const imageUrls = req.files
+    ? req.files.map((file) => {
+        const base64Data = fs.readFileSync(file.path).toString('base64');
+        return `data:${file.mimetype};base64,${base64Data}`;
+      })
+    : [];
 
     const counter = await Counter.findOneAndUpdate(
       { _id: 'void_post_id' }, 
@@ -667,7 +676,7 @@ app.get('/api/games/songless/new-round', async (req, res) => {
 
     // Tạo danh sách bài hát rút gọn (không kèm previewUrl) để Frontend làm Autocomplete
     const catalog = pool.map((s) => ({
-      id: s.id,
+      id: s.id, 
       title: s.title,
       artist: s.artist,
       displayLabel: s.displayLabel

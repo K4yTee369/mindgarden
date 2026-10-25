@@ -15,13 +15,18 @@ const getAuthConfig = () => {
   return { headers: { Authorization: `Bearer ${token}` } };
 };
 
+const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+
 // Hàm tự động kiểm tra và nối URL chính xác
-const getImageUrl = (img) => {
-  if (!img) return '';
-  // Nếu ảnh đã có sẵn http (link ngoài hoặc full link), giữ nguyên
-  if (img.startsWith('http')) return img;
-  // Nếu chưa có, tiến hành nối tên miền backend
-  return `http://localhost:5000${img.startsWith('/') ? '' : '/'}${img}`;
+const getImageUrl = (imgPath) => {
+  if (!imgPath) return '';
+  // Nếu ảnh đã là chuỗi Base64 hoặc link http đầy đủ thì giữ nguyên
+  if (imgPath.startsWith('data:') || imgPath.startsWith('http://') || imgPath.startsWith('https://')) {
+    return imgPath;
+  }
+  // Xóa dấu / thừa ở đầu nếu có rồi nối với API_BASE_URL
+  const cleanPath = imgPath.replace(/^\/+/, '');
+  return `${API_BASE_URL}/${cleanPath}`;
 };
 
 const fetchAdminData = async () => {
@@ -247,14 +252,15 @@ onMounted(() => {
 <!-- Hiển thị Ảnh dưới dạng Thumbnail -->
             <td>
               <div v-if="post.images && post.images.length > 0" class="admin-image-gallery">
-                <a 
-                  v-for="(img, index) in post.images" 
-                  :key="index" 
-                  :href="getImageUrl(img)" 
-                  target="_blank" 
+                <a
+                  v-for="(img, idx) in post.images"
+                  :key="idx"
+                  :href="getImageUrl(img)"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   title="Nhấn để xem ảnh lớn"
                 >
-                  <img :src="getImageUrl(img)" class="admin-thumb" />
+                  <img :src="getImageUrl(img)" alt="Void Attachment" class="admin-thumb" />
                 </a>
               </div>
               <span v-else class="text-gray">0 ảnh</span>

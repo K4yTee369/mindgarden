@@ -6,6 +6,23 @@ import { authState, logout as authLogout } from "./store/auth";
 
 const router = useRouter();
 const isDark = ref(false);
+const showGameDropdown = ref(false);
+
+const GAME_MENU_ITEMS = [
+  { name: 'Game 1: Wordle', path: '/wordle', active: true },
+  { name: 'Game 2: Songless', path: '/songless', active: true },
+  { name: 'Game 3: Soul Guard', path: '/soul-guard', active: true },
+  { name: 'Game 4 (Sắp ra mắt)', path: '', active: false },
+  { name: 'Game 5 (Sắp ra mắt)', path: '', active: false }
+];
+
+const toggleGameDropdown = () => {
+  showGameDropdown.value = !showGameDropdown.value;
+};
+
+const closeGameDropdown = () => {
+  showGameDropdown.value = false;
+};
 
 // State quản lý việc đóng/mở widget và Modal
 const isProfileOpen = ref(false);
@@ -145,21 +162,61 @@ async function handleLogout() {
 </script>
 
 <template>
-  <div id="app" @click="closeProfile">
-    <header v-if="authState.isAuthenticated" class="navbar glass">
-      <div class="navbar-brand">
+  <div id="app" @click="closeAllMenus">
+    <header
+      v-if="authState.isAuthenticated"
+      class="navbar glass"
+      style="position: relative; z-index: 9999; overflow: visible;"
+    >
+      <div class="navbar-brand" @click="$router.push('/void')" style="cursor: pointer;">
         <span class="logo-icon"></span>
         <span class="logo-text">MindGarden</span>
       </div>
 
-      <nav class="navbar-links">
-        <router-link to="/chat" class="nav-link">Chat</router-link>
-        <router-link to="/void" class="nav-link">The Void</router-link>
-        <router-link to="/wordle" class="nav-link">Wordle</router-link>
-        <router-link to="/songless" class="nav-link">Songless</router-link>
-        <router-link to="/soul-guard" class="nav-link">Soul Guard</router-link>
-        <router-link to="/leaderboard" class="nav-link">Bảng xếp hạng</router-link>
-      </nav>
+      <div class="nav-links">
+        <!-- 1. The Void đặt làm tính năng chính đầu tiên -->
+        <router-link to="/void" class="nav-link" @click="closeGameDropdown">
+          The Void
+        </router-link>
+
+        <!-- 2. Menu Dropdown chứa 5 Game -->
+        <div class="nav-dropdown-wrapper" @click.stop>
+          <button
+            type="button"
+            class="nav-link dropdown-trigger"
+            :class="{ 'router-link-active': ['/wordle', '/songless', '/soul-guard'].includes($route?.path) }"
+            @click="toggleGameDropdown"
+          >
+            Games <span class="caret">▾</span>
+          </button>
+
+          <div v-if="showGameDropdown" class="games-dropdown-menu">
+            <template v-for="(g, idx) in GAME_MENU_ITEMS" :key="idx">
+              <router-link
+                v-if="g.active"
+                :to="g.path"
+                class="dropdown-game-item"
+                @click="closeGameDropdown"
+              >
+                {{ g.name }}
+              </router-link>
+              <span v-else class="dropdown-game-item disabled">
+                {{ g.name }}
+              </span>
+            </template>
+          </div>
+        </div>
+
+        <!-- 3. Bảng xếp hạng 5 Game -->
+        <router-link to="/leaderboard" class="nav-link" @click="closeGameDropdown">
+          Bảng xếp hạng
+        </router-link>
+
+        <!-- 4. AI Chat -->
+        <router-link to="/chat" class="nav-link" @click="closeGameDropdown">
+          Chat
+        </router-link>
+      </div>
 
       <div class="navbar-actions">
         <button class="theme-toggle" @click.stop="toggleTheme" :aria-label="'Toggle theme'">
@@ -180,7 +237,6 @@ async function handleLogout() {
             <hr class="widget-divider" />
             
             <div class="widget-actions">
-              <!-- Chỉ hiển thị nút này nếu role là admin -->
               <button v-if="currentUser?.role === 'admin'" class="widget-btn" @click="$router.push('/admin'); closeProfile()">
                 Quản trị viên
               </button>
@@ -447,5 +503,108 @@ async function handleLogout() {
 .btn-save:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* QUAN TRỌNG: Đặt z-index cao cho toàn bộ thanh Header/Navbar để menu con luôn nằm trên cùng */
+header, .navbar, .app-header {
+  position: relative !important;
+  z-index: 1000 !important;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.nav-dropdown-wrapper {
+  position: relative;
+}
+
+.dropdown-trigger {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+
+.caret {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+/* Menu xổ xuống của 5 Game & Menu User luôn nổi lên trên mọi thành phần */
+.games-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 200px;
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.65);
+  z-index: 9999;
+}
+
+.dropdown-game-item {
+  padding: 9px 12px;
+  border-radius: 8px;
+  color: #e2e8f0;
+  text-decoration: none;
+  font-size: 0.86rem;
+  font-weight: 600;
+  transition: background 0.15s;
+  text-align: left;
+}
+
+.dropdown-game-item:hover {
+  background: rgba(59, 130, 246, 0.25);
+  color: #ffffff;
+}
+
+.dropdown-game-item.disabled {
+  color: #64748b;
+  cursor: not-allowed;
+  font-weight: 500;
+}
+
+/* Tối ưu hiển thị trên màn hình điện thoại hẹp */
+@media (max-width: 640px) {
+  .nav-links {
+    gap: 4px;
+  }
+  .nav-item, .dropdown-trigger {
+    padding: 5px 8px;
+    font-size: 0.82rem;
+  }
+}
+
+/* Ép thanh điều hướng luôn nằm ở tầng cao nhất trên toàn trang web */
+header.navbar {
+  position: relative !important;
+  z-index: 9999 !important;
+  overflow: visible !important;
+}
+
+/* Đảm bảo cả menu Games và menu Tài khoản đều có nền đặc, không bị xuyên thấu */
+.games-dropdown-menu,
+.profile-widget {
+  position: absolute !important;
+  z-index: 10000 !important;
+  background: #0f172a !important;
+  backdrop-filter: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.75) !important;
 }
 </style>

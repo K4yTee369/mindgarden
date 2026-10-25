@@ -13,7 +13,7 @@ import SoulGuardView from '../views/SoulGuardView.vue';
 
 
 const routes = [
-  { path: "/", redirect: "/chat" },
+  { path: "/", redirect: "/void" },
   
   // --- Các route chỉ dành cho khách (Guest-only) ---
   { 
@@ -73,10 +73,10 @@ router.beforeEach(async (to, from, next) => {
   if (to.meta.requiresAuth && !isAuth) {
     next({ name: "login" });
   } 
-  // 2. Cần quyền Admin nhưng không phải Admin -> Đẩy về Chat (Khóa cửa)
+  // 2. Cần quyền Admin nhưng không phải Admin -> Đẩy về Void (Khóa cửa)
   else if (to.meta.requiresAdmin && !isAdmin) {
     alert("Bạn không có đặc quyền truy cập khu vực này!");
-    next({ name: "chat" });
+    next({ name: "void" });
   }
   // 3. Đã đăng nhập nhưng cố vào lại Login/Register -> Đẩy về Chat
   else if (to.meta.guestOnly && isAuth) {
