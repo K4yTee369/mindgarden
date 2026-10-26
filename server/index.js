@@ -153,6 +153,10 @@ app.post('/api/void', upload.array('images', 4), async (req, res) => {
           2. Bạo lực: Máu me, vũ khí, đánh nhau, tự hại, hoặc đe dọa người khác.
           3. Chất cấm: Ma túy, bài bạc, các chất kích thích bị cấm.
           4. Ngôn từ: Chửi thề, lăng mạ, xúc phạm, phân biệt chủng tộc/giới tính.
+          5. Chính trị: Nội dung cực đoan, tuyên truyền chính trị, tôn giáo cực đoan.
+
+          Ngoài ra sẽ có những trường hợp vô tình vi phạm (ví dụ: ảnh đời thường nhưng có logo nhạy cảm, chữ bình thường nhưng có từ khóa nhạy cảm...).
+          Thì hãy đánh dấu "flagged" ngay để Admin kiểm duyệt thủ công.
 
           NẾU AN TOÀN (chỉ là than vãn, áp lực học tập, ảnh đời thường, phong cảnh, bài tập, anime thông thường...): Trả về duy nhất chữ "clean".
           

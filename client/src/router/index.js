@@ -10,7 +10,7 @@ import WordleView from '../views/WordleView.vue';
 import LeaderboardView from '../views/LeaderboardView.vue';
 import SonglessView from '../views/SonglessView.vue';
 import SoulGuardView from '../views/SoulGuardView.vue';
-
+import TowerStackView from '../views/TowerStackView.vue';
 
 const routes = [
   { path: "/", redirect: "/void" },
@@ -52,7 +52,12 @@ const routes = [
   path: '/soul-guard',
   name: 'soul-guard',
   component: SoulGuardView
-}
+},
+{
+  path: '/tower-stack',
+  name: 'tower-stack',
+  component: TowerStackView
+},
 ];
 
 const router = createRouter({

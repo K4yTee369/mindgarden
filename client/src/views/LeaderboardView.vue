@@ -7,7 +7,7 @@ const GAMES_CONFIG = [
   { key: 'wordle', name: 'Game 1: Wordle', shortName: 'Wordle' },
   { key: 'game2', name: 'Game 2: Songless', shortName: 'Songless' },
   { key: 'game3', name: 'Game 3: Soul Guard', shortName: 'Soul Guard' },
-  { key: 'game4', name: 'Game 4', shortName: 'Game 4' },
+  { key: 'game4', name: 'Game 4: Tower Stack', shortName: 'Tower Stack' },
   { key: 'game5', name: 'Game 5', shortName: 'Game 5' }
 ];
 

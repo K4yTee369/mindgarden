@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
+import { authState } from '../store/auth';
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/$/, '');
 
@@ -204,6 +205,30 @@ const formatDate = (dateStr) => {
   });
 };
 
+// Lấy đúng số thứ tự bài đăng (#45, #46...)
+const getPostBadgeNumber = (post) => {
+  return post?.postId ?? post?.postNumber ?? post?.number ?? null;
+};
+
+// Lấy đúng tên người đăng từ Database
+const getPostAuthorName = (post) => {
+  if (!post || post.isAnonymous) return 'Ẩn danh';
+  if (typeof post.author === 'string' && post.author.trim()) return post.author;
+  if (post.author?.fullName) return post.author.fullName;
+  if (post.authorName) return post.authorName;
+  if (post.user?.fullName) return post.user.fullName;
+  return 'Ẩn danh';
+};
+
+// Lấy đúng tên người bình luận
+const getCommentAuthorName = (cmt) => {
+  if (!cmt) return 'Ẩn danh';
+  if (typeof cmt.author === 'string' && cmt.author.trim()) return cmt.author;
+  if (cmt.author?.fullName) return cmt.author.fullName;
+  if (cmt.authorName) return cmt.authorName;
+  return 'Ẩn danh';
+};
+
 onMounted(() => {
   fetchPosts();
 });
@@ -348,8 +373,10 @@ onMounted(() => {
           @click="openModal(post)"
         >
           <div class="post-header">
-            <span v-if="post.postNumber" class="post-id-badge">#{{ post.postNumber }}</span>
-            <span class="post-author">{{ post.isAnonymous ? 'Ẩn danh' : (post.authorName || 'Người dùng') }}</span>
+            <span v-if="getPostBadgeNumber(post)" class="post-id-badge">
+              #{{ getPostBadgeNumber(post) }}
+            </span>
+            <span class="post-author">{{ getPostAuthorName(post) }}</span>
             <span
               class="post-tag"
               @click.stop="filterByClickingTag(post.tag)"
@@ -387,10 +414,10 @@ onMounted(() => {
 
         <div class="modal-body">
           <div class="modal-header">
-            <span v-if="selectedPost.postNumber" class="post-id-badge">#{{ selectedPost.postNumber }}</span>
-            <span class="post-author">
-              {{ selectedPost.isAnonymous ? 'Ẩn danh' : (selectedPost.authorName || 'Người dùng') }}
+            <span v-if="getPostBadgeNumber(selectedPost)" class="post-id-badge">
+              #{{ getPostBadgeNumber(selectedPost) }}
             </span>
+            <span class="post-author">{{ getPostAuthorName(selectedPost) }}</span>
             <span class="post-tag">#{{ cleanTagString(selectedPost.tag) }}</span>
           </div>
 
@@ -426,7 +453,7 @@ onMounted(() => {
               :key="cIdx"
               class="comment-item"
             >
-              <span class="comment-author">{{ cmt.authorName || 'Ẩn danh' }}</span>
+              <span class="comment-author">{{ getCommentAuthorName(cmt) }}</span>
               <span class="comment-text">{{ cmt.text || cmt.content }}</span>
               <span class="comment-time">{{ formatDate(cmt.createdAt) }}</span>
             </div>
