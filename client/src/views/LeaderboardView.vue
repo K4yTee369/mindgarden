@@ -1,8 +1,9 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
+import { authState, checkAuth } from '../store/auth';
 
-// Cấu hình danh sách 5 Game (Đổi tên khi bạn phát triển thêm game mới)
+// Cấu hình danh sách 5 Game
 const GAMES_CONFIG = [
   { key: 'wordle', name: 'Game 1: Wordle', shortName: 'Wordle' },
   { key: 'game2', name: 'Game 2: Songless', shortName: 'Songless' },
@@ -39,16 +40,74 @@ const getAuthConfig = () => {
   return token ? { headers: { Authorization: `Bearer ${token}` } } : null;
 };
 
+// Lấy thông tin tài khoản đang đăng nhập từ authState hoặc localStorage
+const getCurrentUserInfo = () => {
+  if (authState.user) return authState.user;
+  try {
+    return JSON.parse(localStorage.getItem('user') || '{}');
+  } catch {
+    return {};
+  }
+};
+
+// Tự động khớp hồ sơ cá nhân với dữ liệu trên Bảng xếp hạng nếu Kho điểm bị báo 0
+const syncMyProfileWithBoard = (boardList) => {
+  const currentUser = getCurrentUserInfo();
+  const myId = String(currentUser.id || currentUser._id || '');
+  const myName = (currentUser.fullName || currentUser.username || '').trim().toLowerCase();
+  const myEmail = (currentUser.email || '').trim().toLowerCase();
+
+  if (!Array.isArray(boardList) || boardList.length === 0) return;
+
+  const matchedIndex = boardList.findIndex((item) => {
+    const itemId = String(item.userId || item._id || item.id || '');
+    const itemName = (item.fullName || '').trim().toLowerCase();
+    const itemEmail = (item.email || '').trim().toLowerCase();
+
+    return (
+      (myId && itemId && myId === itemId) ||
+      (myEmail && itemEmail && myEmail === itemEmail) ||
+      (myName && itemName && myName === itemName)
+    );
+  });
+
+  if (matchedIndex !== -1) {
+    const matchedPlayer = boardList[matchedIndex];
+    myProfile.value = {
+      ...myProfile.value,
+      ...matchedPlayer,
+      rank: matchedPlayer.rank || matchedIndex + 1,
+      games: {
+        ...myProfile.value.games,
+        ...(matchedPlayer.games || {})
+      }
+    };
+  }
+};
+
 const fetchMyProfile = async () => {
   const config = getAuthConfig();
   if (!config) return;
   try {
-    const { data } = await axios.get('http://localhost:5000/api/games/my-stats', config);
-    if (data.success && data.profile) {
+    const currentUser = getCurrentUserInfo();
+    const { data } = await axios.get('http://localhost:5000/api/games/my-stats', {
+      ...config,
+      params: {
+        userId: currentUser.id || currentUser._id,
+        fullName: currentUser.fullName,
+        email: currentUser.email
+      }
+    });
+    if (data.success && data.profile && data.profile.totalScore > 0) {
       myProfile.value = data.profile;
+    } else if (leaderboard.value.length > 0) {
+      syncMyProfileWithBoard(leaderboard.value);
     }
   } catch (error) {
-    console.error("Lỗi tải kho điểm cá nhân:", error);
+    console.error('Lỗi tải kho điểm cá nhân:', error);
+    if (leaderboard.value.length > 0) {
+      syncMyProfileWithBoard(leaderboard.value);
+    }
   }
 };
 
@@ -58,10 +117,14 @@ const fetchLeaderboard = async (filterKey = selectedFilter.value) => {
   try {
     const { data } = await axios.get(`http://localhost:5000/api/games/leaderboard?game=${filterKey}`);
     if (data.success) {
-      leaderboard.value = data.leaderboard;
+      leaderboard.value = data.leaderboard || [];
+      // Nếu Kho Điểm Của Bạn đang bằng 0 thì đồng bộ ngay từ bảng xếp hạng tổng
+      if (!myProfile.value.totalScore || filterKey === 'total') {
+        syncMyProfileWithBoard(leaderboard.value);
+      }
     }
   } catch (error) {
-    console.error("Lỗi tải bảng xếp hạng:", error);
+    console.error('Lỗi tải bảng xếp hạng:', error);
   } finally {
     isLoading.value = false;
   }
@@ -76,9 +139,12 @@ const calcWinRate = (won, played) => {
   return Math.round((won / played) * 100);
 };
 
-onMounted(() => {
-  fetchMyProfile();
-  fetchLeaderboard('total');
+onMounted(async () => {
+  if (!authState.user && localStorage.getItem('token')) {
+    await checkAuth();
+  }
+  await fetchLeaderboard('total');
+  await fetchMyProfile();
 });
 </script>
 

@@ -229,8 +229,24 @@ const getCommentAuthorName = (cmt) => {
   return 'Ẩn danh';
 };
 
+const activeMood = ref(localStorage.getItem('mindgarden_mood') || 'calm');
+
+const moodGreeting = computed(() => {
+  if (activeMood.value === 'joy') {
+    return 'Ngày nắng đẹp! Hãy lưu lại một niềm vui hoặc truyền năng lượng tích cực cho mọi người nhé.';
+  }
+  if (activeMood.value === 'low') {
+    return 'Không sao cả nếu hôm nay bạn thấy mệt. Hãy trút bỏ nỗi lòng vào khoảng không này, mọi người luôn lắng nghe bạn.';
+  }
+  return 'Không gian tĩnh lặng để bạn ghi lại suy nghĩ, tâm sự và kết nối nhẹ nhàng cùng cộng đồng.';
+});
+
 onMounted(() => {
   fetchPosts();
+
+  window.addEventListener('mindgarden-mood-change', (e) => {
+    activeMood.value = e.detail;
+  });
 });
 </script>
 
@@ -242,7 +258,7 @@ onMounted(() => {
       <aside class="void-left-column glass">
         <div class="column-header">
           <h1>The Void</h1>
-          <p class="subtitle">Chia sẻ tâm sự, suy nghĩ và kết nối cùng cộng đồng</p>
+          <p class="subtitle">{{ moodGreeting }}</p>
         </div>
 
         <!-- 1. Khung tạo bài đăng -->
@@ -1079,5 +1095,45 @@ onMounted(() => {
   .void-left-column {
     position: static;
   }
+}
+
+/* Đồng bộ các ô nhập liệu và bài tâm sự theo 3 Tâm trạng */
+.void-input-box textarea,
+.hashtag-input-wrapper,
+.search-hashtag-input {
+  background: var(--surface-input) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.hashtag-input {
+  color: var(--text-primary) !important;
+}
+
+.quick-tag-chip,
+.filter-pill,
+.comment-prompt {
+  background: var(--surface-strong) !important;
+  color: var(--text-secondary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.quick-tag-chip.active,
+.filter-pill.active,
+.post-btn,
+.send-comment-btn {
+  background: var(--accent) !important;
+  color: var(--accent-contrast) !important;
+  border-color: var(--accent) !important;
+}
+
+/* Giới hạn độ dài dòng dưới 70 ký tự và dùng chữ Serif nhân văn cho nội dung tâm sự */
+.post-text,
+.modal-text {
+  font-family: "Newsreader", Georgia, serif;
+  font-size: 1.06rem;
+  line-height: 1.65;
+  max-width: 68ch;
+  color: var(--text-primary) !important;
 }
 </style>
