@@ -30,7 +30,7 @@ const GAME_MENU_ITEMS = [
   { name: "Game 2: Songless", path: "/songless", active: true },
   { name: "Game 3: Soul Guard", path: "/soul-guard", active: true },
   { name: "Game 4: Tower Stack", path: "/tower-stack", active: true },
-  { name: "Game 5 (Sắp ra mắt)", path: "", active: false }
+  { name: "Game 5: Rhythm Pulse", path: "/rhythm-pulse", active: true }
 ];
 
 // State quản lý việc đóng/mở widget và Modal
@@ -213,8 +213,9 @@ async function handleLogout() {
 <template>
   <div class="app-shell" @click="closeAllMenus">
     <!-- 1. THANH NAVIGATION BAR LUÔN HIỂN THỊ CỐ ĐỊNH Ở TRÊN CÙNG -->
+    <!-- Thanh Navbar LUÔN hiển thị ở mọi trang trừ trang Login và Register -->
     <header
-      v-if="isUserLoggedIn && !['/login', '/register'].includes(route.path)"
+      v-if="!['/login', '/register'].includes($route.path)"
       class="navbar glass"
     >
       <div class="navbar-brand" @click="router.push('/void')" style="cursor: pointer;">
@@ -232,7 +233,7 @@ async function handleLogout() {
           <button
             type="button"
             class="nav-link dropdown-trigger"
-            :class="{ 'router-link-active': ['/wordle', '/songless', '/soul-guard', '/tower-stack'].includes(route.path) }"
+            :class="{ 'router-link-active': ['/wordle', '/songless', '/soul-guard', '/tower-stack', '/rhythm-pulse'].includes(route.path) }"
             @click="toggleGameDropdown"
           >
             Games <span class="caret">▾</span>
@@ -284,7 +285,7 @@ async function handleLogout() {
 
             <div class="widget-actions">
               <button
-                v-if="authState.isAuthenticated"
+                v-if="currentUser?.role === 'admin'"
                 class="widget-btn"
                 @click="router.push('/admin'); closeProfile()"
               >

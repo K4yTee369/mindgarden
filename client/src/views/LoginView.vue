@@ -2,7 +2,8 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
-import { authState } from '../store/auth';
+// import { authState } from '../store/auth';
+import { authState, checkAuth } from '../store/auth';
 
 const router = useRouter();
 const email = ref('');
@@ -27,10 +28,14 @@ const handleLogin = async () => {
 
     if (data.success) {
       localStorage.setItem('token', data.token);
+      // BẮT BUỘC PHẢI CÓ DÒNG NÀY ĐỂ 5 GAME BIẾT CỘNG ĐIỂM CHO AI:
+      localStorage.setItem('user', JSON.stringify(data.user));
       authState.isAuthenticated = true;
       authState.user = data.user;
+      authState.isAuthLoaded = true;
       router.push('/void');
     }
+    
   } catch (err) {
     errorMsg.value = err.response?.data?.message || 'Lỗi kết nối đến máy chủ.';
   } finally {

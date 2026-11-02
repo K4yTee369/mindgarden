@@ -8,7 +8,7 @@ const GAMES_CONFIG = [
   { key: 'game2', name: 'Game 2: Songless', shortName: 'Songless' },
   { key: 'game3', name: 'Game 3: Soul Guard', shortName: 'Soul Guard' },
   { key: 'game4', name: 'Game 4: Tower Stack', shortName: 'Tower Stack' },
-  { key: 'game5', name: 'Game 5', shortName: 'Game 5' }
+  { key: 'game5', name: 'Game 5: Rhythm Pulse', shortName: 'Rhythm Pulse' }
 ];
 
 const selectedFilter = ref('total'); // 'total' hoặc mã game

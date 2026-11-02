@@ -62,17 +62,24 @@ const login = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid Email or Password." });
     }
 
+    // 1. Đưa cả role vào trong JWT Token để dùng cho admin.middleware.js
     const token = jwt.sign(
-      { userId: user._id, email: user.email },
+      { userId: user._id, email: user.email, role: user.role },
       process.env.JWT_SECRET || 'secret_key_tam_thoi',
       { expiresIn: process.env.JWT_EXPIRES_IN || '1d' }
     );
 
+    // 2. Trả về đầy đủ role: user.role ngay khi đăng nhập
     res.json({
       success: true,
       message: "Login successful",
       token,
-      user: { id: user._id, fullName: user.fullName, email: user.email }
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role
+      }
     });
   } catch (err) {
     console.error("Login Error:", err);
@@ -118,7 +125,7 @@ const updateProfile = async (req, res) => {
     res.json({
       success: true,
       message: "Cập nhật tên thành công!",
-      user: { id: updatedUser._id, fullName: updatedUser.fullName, email: updatedUser.email }
+      user: { id: updatedUser._id, fullName: updatedUser.fullName, email: updatedUser.email, role: updatedUser.role }
     });
   } catch (err) {
     console.error("Update Profile Error:", err);

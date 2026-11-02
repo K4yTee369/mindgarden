@@ -1,14 +1,22 @@
 import { reactive } from 'vue';
 import axios from 'axios';
 
+const getSavedUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem('user') || 'null');
+  } catch {
+    return null;
+  }
+};
+
 export const authState = reactive({
-  isAuthenticated: false,
-  user: null,
-  isAuthLoaded: false // Dùng để tránh chuyển trang trước khi check xong token
+  isAuthenticated: Boolean(localStorage.getItem('token')),
+  user: getSavedUser(),
+  isAuthLoaded: false
 });
 
-// Cấu hình mặc định cho Axios để luôn gửi Token nếu có
-axios.interceptors.request.use(config => {
+// Luôn đính kèm Bearer Token vào mọi request gửi lên Server
+axios.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -18,6 +26,9 @@ axios.interceptors.request.use(config => {
 
 export const checkAuth = async () => {
   const token = localStorage.getItem('token');
+  const savedUser = getSavedUser();
+
+  // Nếu không có token trong máy -> Chưa đăng nhập
   if (!token) {
     authState.isAuthenticated = false;
     authState.user = null;
@@ -25,19 +36,32 @@ export const checkAuth = async () => {
     return false;
   }
 
+  // Khôi phục ngay lập tức thông tin User/Admin từ localStorage
+  authState.isAuthenticated = true;
+  if (savedUser) {
+    authState.user = savedUser;
+  }
+
   try {
-    const { data } = await axios.get('http://localhost:5000/api/auth/me');
-    if (data.success) {
-      authState.isAuthenticated = true;
-      authState.user = data.user;
+    const { data } = await axios.get('http://localhost:5000/api/auth/me', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (data.success && data.user) {
+      const mergedUser = {
+        ...(savedUser || {}),
+        ...data.user,
+        role: data.user.role || savedUser?.role || 'user'
+      };
+      authState.user = mergedUser;
+      localStorage.setItem('user', JSON.stringify(mergedUser));
     }
   } catch (error) {
-    localStorage.removeItem('token');
-    authState.isAuthenticated = false;
-    authState.user = null;
+    // QUAN TRỌNG: Không xóa token/user khi /api/auth/me báo 401, giữ nguyên thông tin từ lúc Login
+    console.warn('Giữ phiên đăng nhập từ localStorage.');
   } finally {
     authState.isAuthLoaded = true;
   }
+
   return authState.isAuthenticated;
 };
 
@@ -48,8 +72,10 @@ export const logout = async () => {
     console.error(err);
   } finally {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     authState.isAuthenticated = false;
     authState.user = null;
+    authState.isAuthLoaded = false;
     window.location.href = '/login';
   }
 };
